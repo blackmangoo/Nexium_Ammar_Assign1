@@ -4,7 +4,7 @@ import React from 'react'; // Always import React when writing JSX
 const App = () => {
   return (
     // A simple div to contain our content, styled with Tailwind CSS
-    // min-h-screen makes it take full viewport height
+    // min-h-screen makes it take full viewport heigh
     // bg-gray-900 sets a dark background
     // text-gray-100 sets light text color
     // flex, items-center, justify-center centers the content on the page
