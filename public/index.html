@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quote Generator</title>
+    <!-- Tailwind CSS CDN for easy styling. This script loads Tailwind directly. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter for a modern and clean look. -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+      /* Apply the 'Inter' font globally to the body of the document */
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+    </style>
+</head>
+<body>
+    <!-- This is the 'root' div where our React application will be mounted and rendered. -->
+    <div id="root"></div>
+    <!-- Link to our main React JavaScript file.
+         The 'type="module"' attribute is crucial for modern JavaScript modules.
+         The '/src/index.jsx' path assumes your index.jsx is in a 'src' folder
+         relative to the root of your deployment (which Vercel handles). -->
+    <script type="module" src="/src/index.jsx"></script>
+</body>
+</html>
