@@ -10,31 +10,15 @@ const App = () => {
   const [message, setMessage] = useState('');
   // State to control the visibility of the message modal
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  // NEW: State to indicate if quotes are currently being generated (for loading indicator)
+  const [loading, setLoading] = useState(false);
 
-  // Hardcoded array of motivational quotes.
-  // In a real-world scenario, this might be loaded from a JSON file or an API.
-  const allMotivationalQuotes = [
-    "The only way to do great work is to love what you do. – Steve Jobs",
-    "Believe you can and you're halfway there. – Theodore Roosevelt",
-    "The future belongs to those who believe in the beauty of their dreams. – Eleanor Roosevelt",
-    "It always seems impossible until it's done. – Nelson Mandela",
-    "Success is not final, failure is not fatal: it is the courage to continue that counts. – Winston Churchill",
-    "The best way to predict the future is to create it. – Peter Drucker",
-    "Your time is limited, don't waste it living someone else's life. – Steve Jobs",
-    "The only limit to our realization of tomorrow will be our doubts of today. – Franklin D. Roosevelt",
-    "What you get by achieving your goals is not as important as what you become by achieving your goals. – Zig Ziglar",
-    "Go confidently in the direction of your dreams! Live the life you've imagined. – Henry David Thoreau",
-    "The mind is everything. What you think you become. – Buddha",
-    "Strive not to be a success, but rather to be of value. – Albert Einstein",
-    "The only place where success comes before work is in the dictionary. – Vidal Sassoon",
-    "The journey of a thousand miles begins with a single step. – Lao Tzu",
-    "The greatest glory in living lies not in never falling, but in rising every time we fall. – Nelson Mandela",
-    "The only true wisdom is in knowing you know nothing. – Socrates",
-    "Innovation distinguishes between a leader and a follower. – Steve Jobs",
-    "The way to get started is to quit talking and begin doing. – Walt Disney",
-    "If you look at what you have in life, you'll always have more. If you look at what you don't have in life, you'll never have enough. – Oprah Winfrey",
-    "If you want to lift yourself up, lift up someone else. – Booker T. Washington"
-  ];
+  // Hardcoded array of motivational quotes (kept for reference, but now LLM will generate)
+  // const allMotivationalQuotes = [
+  //   "The only way to do great work is to love what you do. – Steve Jobs",
+  //   "Believe you can and you're halfway there. – Theodore Roosevelt",
+  //   // ... (rest of your hardcoded quotes)
+  // ];
 
   /**
    * Function to open a simple message modal with a given text.
@@ -55,29 +39,61 @@ const App = () => {
   };
 
   /**
-   * Function to generate 3 random quotes from the allMotivationalQuotes array.
-   * This is the core logic for Day 2.
+   * Function to generate 3 quotes using the Gemini API based on the entered topic.
+   * This function is now asynchronous as it makes an API call.
    */
-  const generateQuotes = () => {
+  const generateQuotes = async () => { // Marked as async
     // Basic validation: if topic is empty, show a message
     if (topic.trim() === '') {
       showMessage("Please enter a topic to generate quotes.");
       return; // Stop the function execution
     }
 
-    // Create a copy of the quotes array to avoid modifying the original
-    const shuffledQuotes = [...allMotivationalQuotes];
+    setLoading(true); // Set loading state to true when generation starts
+    setQuotes([]); // Clear any previously displayed quotes
 
-    // Fisher-Yates (Knuth) shuffle algorithm to randomize the array
-    for (let i = shuffledQuotes.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1)); // Get a random index from 0 to i
-      [shuffledQuotes[i], shuffledQuotes[j]] = [shuffledQuotes[j], shuffledQuotes[i]]; // Swap elements
+    try {
+      // Construct the prompt for the Gemini LLM
+      const prompt = `Generate 3 short, motivational quotes about the topic: "${topic}". Each quote should be on a new line and attributed to a well-known figure if possible.`;
+
+      // Prepare chat history for the Gemini API payload
+      let chatHistory = [];
+      chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+      const payload = { contents: chatHistory };
+      const apiKey = ""; // Canvas will automatically provide the API key at runtime
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+      // Make the API call to Gemini
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      // Parse the JSON response from the API
+      const result = await response.json();
+
+      // Check if the response contains valid candidates and content
+      if (result.candidates && result.candidates.length > 0 &&
+          result.candidates[0].content && result.candidates[0].content.parts &&
+          result.candidates[0].content.parts.length > 0) {
+        const generatedText = result.candidates[0].content.parts[0].text;
+        // Split the generated text by newline to get individual quotes
+        const newQuotes = generatedText.split('\n').filter(q => q.trim() !== '');
+        setQuotes(newQuotes); // Update the quotes state with generated quotes
+      } else {
+        // Handle cases where the API response structure is unexpected
+        showMessage("Failed to generate quotes. The AI response was unexpected.");
+        console.error("Gemini API response structure unexpected:", result);
+      }
+    } catch (error) {
+      // Catch any errors during the fetch operation (e.g., network issues)
+      showMessage("An error occurred while generating quotes. Please check your connection or try a different topic.");
+      console.error("Error calling Gemini API:", error);
+    } finally {
+      setLoading(false); // Always set loading to false after the operation completes or fails
     }
-
-    // Select the first 3 quotes from the shuffled array
-    const selectedQuotes = shuffledQuotes.slice(0, 3);
-    // Update the 'quotes' state, which will trigger a re-render of the component
-    setQuotes(selectedQuotes);
   };
 
   return (
@@ -119,6 +135,7 @@ const App = () => {
           {/* value={topic}: Binds the input's value to the 'topic' state. */}
           {/* onChange: Updates the 'topic' state as the user types. */}
           {/* Placeholder text. */}
+          {/* disabled={loading}: Input is disabled while quotes are being generated. */}
           {/* Tailwind classes for ShadCN-like input styling: */}
           {/* flex h-10 w-full: Sets height and full width. */}
           {/* rounded-md: Rounded corners. */}
@@ -136,9 +153,11 @@ const App = () => {
             onChange={(e) => setTopic(e.target.value)}
             placeholder="e.g., Inspiration"
             className="flex h-10 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-sm placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 text-gray-200"
+            disabled={loading} // Disable input when loading
           />
           {/* Button to trigger quote generation */}
           {/* onClick: Calls the generateQuotes function. */}
+          {/* disabled={loading}: Button is disabled while quotes are being generated. */}
           {/* Tailwind classes for ShadCN-like button styling: */}
           {/* inline-flex items-center justify-center: For centering text/icons. */}
           {/* rounded-md: Rounded corners. */}
@@ -152,16 +171,23 @@ const App = () => {
           <button
             onClick={generateQuotes}
             className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-gray-900 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 w-full shadow-md"
+            disabled={loading} // Disable button when loading
           >
-            Generate Quotes
+            {loading ? 'Generating...' : 'Generate Quotes ✨'} {/* Change button text based on loading state */}
           </button>
         </div>
 
         {/* Display Quotes Section */}
-        {/* Conditionally renders this div ONLY if there are quotes in the 'quotes' array. */}
-        {quotes.length > 0 && (
+        {/* Conditionally renders loading message or quotes */}
+        {loading && (
+          <div className="text-center text-gray-400 mt-6">
+            Generating quotes, please wait...
+          </div>
+        )}
+
+        {!loading && quotes.length > 0 && (
           <div className="space-y-4 mt-6">
-            <h2 className="text-xl font-semibold text-gray-200 text-center">Your Quotes:</h2>
+            <h2 className="text-xl font-semibold text-gray-200 text-center">Your Generated Quotes:</h2>
             {/* Map over the 'quotes' array to display each quote */}
             {quotes.map((quote, index) => (
               <div
