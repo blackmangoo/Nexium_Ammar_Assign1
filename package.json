@@ -1,0 +1,16 @@
+{
+  "name": "quote-generator-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "parcel public/index.html",
+    "build": "parcel build public/index.html"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "parcel": "^2.12.0"
+  }
+}

@@ -1,22 +1,17 @@
-import React from 'react'; // Always import React when writing JSX
+import React from 'react'; // Import React library
+import ReactDOM from 'react-dom/client'; // Import ReactDOM for rendering
+import App from './App.jsx'; // Import our main App component
 
-// Define our main App functional component
-const App = () => {
-  return (
-    // A simple div to contain our content, styled with Tailwind CSS
-    // min-h-screen makes it take full viewport height
-    // bg-gray-900 sets a dark background
-    // text-gray-100 sets light text color
-    // flex, items-center, justify-center centers the content on the page
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex items-center justify-center">
-      {/* Our main heading for the application */}
-      {/* text-4xl sets the font size, font-bold makes it bold, text-blue-400 sets the color */}
-      <h1 className="text-4xl font-bold text-blue-400">
-        Welcome to Quote Generator!
-      </h1>
-    </div>
-  );
-};
+// Get the root DOM element where our React app will be rendered
+const rootElement = document.getElementById('root');
 
-// Export the App component so it can be imported and rendered by index.jsx
-export default App;
+// Create a React root
+const root = ReactDOM.createRoot(rootElement);
+
+// Render the App component into the root
+// React.StrictMode helps highlight potential problems in an application.
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
