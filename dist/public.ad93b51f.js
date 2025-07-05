@@ -25022,7 +25022,7 @@ const App = ()=>{
             const payload = {
                 contents: chatHistory
             };
-            const apiKey = ""; // Canvas will automatically provide the API key at runtime
+            const apiKey = "AIzaSyCO6g21wMI3cGqFXQU0Wgt4nlSjbFpmIt4"; // Canvas will automatically provide the API key at runtime
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
             // Make the API call to Gemini
             const response = await fetch(apiUrl, {
