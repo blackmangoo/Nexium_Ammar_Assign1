@@ -10,15 +10,11 @@ const App = () => {
   const [message, setMessage] = useState('');
   // State to control the visibility of the message modal
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
-  // NEW: State to indicate if quotes are currently being generated (for loading indicator)
+  // State to indicate if quotes are currently being generated (for loading indicator)
   const [loading, setLoading] = useState(false);
 
-  // Hardcoded array of motivational quotes (kept for reference, but now LLM will generate)
-  // const allMotivationalQuotes = [
-  //   "The only way to do great work is to love what you do. – Steve Jobs",
-  //   "Believe you can and you're halfway there. – Theodore Roosevelt",
-  //   // ... (rest of your hardcoded quotes)
-  // ];
+  //API Key for local development.
+  const GEMINI_API_KEY = "AIzaSyCO6g21wMI3cGqFXQU0Wgt4nlSjbFpmIt4"; // i have used my gemeni api key for testing, you can use yours
 
   /**
    * Function to open a simple message modal with a given text.
@@ -39,14 +35,26 @@ const App = () => {
   };
 
   /**
+   * NEW FUNCTION: Clears the displayed quotes and the topic input.
+   */
+  const clearQuotes = () => {
+    setQuotes([]); // Clear the quotes array
+    setTopic('');   // Clear the topic input
+  };
+
+  /**
    * Function to generate 3 quotes using the Gemini API based on the entered topic.
    * This function is now asynchronous as it makes an API call.
    */
-  const generateQuotes = async () => { // Marked as async
-    // Basic validation: if topic is empty, show a message
+  const generateQuotes = async () => {
+    // Enhanced Input Validation: Check for empty or too short topic
     if (topic.trim() === '') {
       showMessage("Please enter a topic to generate quotes.");
-      return; // Stop the function execution
+      return;
+    }
+    if (topic.trim().length < 3) { // Minimum length validation
+        showMessage("Please enter a topic with at least 3 characters.");
+        return;
     }
 
     setLoading(true); // Set loading state to true when generation starts
@@ -61,8 +69,8 @@ const App = () => {
       chatHistory.push({ role: "user", parts: [{ text: prompt }] });
 
       const payload = { contents: chatHistory };
-      const apiKey = "AIzaSyCO6g21wMI3cGqFXQU0Wgt4nlSjbFpmIt4"; // Canvas will automatically provide the API key at runtime
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+      // Use the API key from the constant
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
       // Make the API call to Gemini
       const response = await fetch(apiUrl, {
@@ -70,6 +78,14 @@ const App = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+
+      // Check if the response was successful (status code 2xx)
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Gemini API error response:", errorData);
+        showMessage(`API Error: ${errorData.error?.message || 'Something went wrong with the API request.'}`);
+        return; // Exit if response is not OK
+      }
 
       // Parse the JSON response from the API
       const result = await response.json();
@@ -81,7 +97,11 @@ const App = () => {
         const generatedText = result.candidates[0].content.parts[0].text;
         // Split the generated text by newline to get individual quotes
         const newQuotes = generatedText.split('\n').filter(q => q.trim() !== '');
-        setQuotes(newQuotes); // Update the quotes state with generated quotes
+        if (newQuotes.length === 0) {
+            showMessage("The AI generated an empty response for this topic. Please try a different topic.");
+        } else {
+            setQuotes(newQuotes); // Update the quotes state with generated quotes
+        }
       } else {
         // Handle cases where the API response structure is unexpected
         showMessage("Failed to generate quotes. The AI response was unexpected.");
@@ -89,7 +109,7 @@ const App = () => {
       }
     } catch (error) {
       // Catch any errors during the fetch operation (e.g., network issues)
-      showMessage("An error occurred while generating quotes. Please check your connection or try a different topic.");
+      showMessage("An error occurred while generating quotes. Please check your connection or try again.");
       console.error("Error calling Gemini API:", error);
     } finally {
       setLoading(false); // Always set loading to false after the operation completes or fails
@@ -126,26 +146,12 @@ const App = () => {
         </h1>
 
         {/* Input Form Section */}
-        <div className="space-y-4">
+        <div className="space-y-4"> {/* Increased space-y for better separation */}
           {/* Label for the topic input field */}
           <label htmlFor="topic-input" className="block text-sm font-medium text-gray-300">
             Enter Topic (e.g., Motivation, Success, Life):
           </label>
           {/* Input field for the topic */}
-          {/* value={topic}: Binds the input's value to the 'topic' state. */}
-          {/* onChange: Updates the 'topic' state as the user types. */}
-          {/* Placeholder text. */}
-          {/* disabled={loading}: Input is disabled while quotes are being generated. */}
-          {/* Tailwind classes for ShadCN-like input styling: */}
-          {/* flex h-10 w-full: Sets height and full width. */}
-          {/* rounded-md: Rounded corners. */}
-          {/* border border-gray-700: Border style. */}
-          {/* bg-gray-900: Input background. */}
-          {/* px-3 py-2: Padding inside input. */}
-          {/* text-sm: Smaller text. */}
-          {/* placeholder:text-gray-500: Placeholder color. */}
-          {/* focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent: Focus styles. */}
-          {/* text-gray-200: Input text color. */}
           <input
             id="topic-input"
             type="text"
@@ -155,26 +161,24 @@ const App = () => {
             className="flex h-10 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-sm placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 text-gray-200"
             disabled={loading} // Disable input when loading
           />
-          {/* Button to trigger quote generation */}
-          {/* onClick: Calls the generateQuotes function. */}
-          {/* disabled={loading}: Button is disabled while quotes are being generated. */}
-          {/* Tailwind classes for ShadCN-like button styling: */}
-          {/* inline-flex items-center justify-center: For centering text/icons. */}
-          {/* rounded-md: Rounded corners. */}
-          {/* text-sm font-medium: Text styling. */}
-          {/* transition-colors: Smooth color transitions on hover. */}
-          {/* focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2: Focus styles. */}
-          {/* ring-offset-gray-900: Ring offset color. */}
-          {/* bg-blue-600 text-white hover:bg-blue-700: Button colors. */}
-          {/* h-10 px-4 py-2 w-full: Sizing and padding. */}
-          {/* shadow-md: Medium shadow. */}
-          <button
-            onClick={generateQuotes}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-gray-900 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 w-full shadow-md"
-            disabled={loading} // Disable button when loading
-          >
-            {loading ? 'Generating...' : 'Generate Quotes ✨'} {/* Change button text based on loading state */}
-          </button>
+          {/* Buttons container for better layout */}
+          <div className="flex flex-col sm:flex-row gap-3"> {/* Use flexbox for buttons, responsive */}
+            <button
+              onClick={generateQuotes}
+              className="flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-gray-900 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 shadow-md"
+              disabled={loading} // Disable button when loading
+            >
+              {loading ? 'Generating...' : 'Generate Quotes ✨'} {/* Change button text based on loading state */}
+            </button>
+            {/* NEW: Clear Quotes Button */}
+            <button
+              onClick={clearQuotes}
+              className="flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-gray-900 bg-gray-600 text-white hover:bg-gray-700 h-10 px-4 py-2 shadow-md"
+              disabled={loading} // Disable button when loading
+            >
+              Clear Quotes 🗑️
+            </button>
+          </div>
         </div>
 
         {/* Display Quotes Section */}

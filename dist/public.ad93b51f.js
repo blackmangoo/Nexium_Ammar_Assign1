@@ -24973,14 +24973,10 @@ const App = ()=>{
     const [message, setMessage] = (0, _react.useState)('');
     // State to control the visibility of the message modal
     const [isMessageModalOpen, setIsMessageModalOpen] = (0, _react.useState)(false);
-    // NEW: State to indicate if quotes are currently being generated (for loading indicator)
+    // State to indicate if quotes are currently being generated (for loading indicator)
     const [loading, setLoading] = (0, _react.useState)(false);
-    // Hardcoded array of motivational quotes (kept for reference, but now LLM will generate)
-    // const allMotivationalQuotes = [
-    //   "The only way to do great work is to love what you do. – Steve Jobs",
-    //   "Believe you can and you're halfway there. – Theodore Roosevelt",
-    //   // ... (rest of your hardcoded quotes)
-    // ];
+    //API Key for local development.
+    const GEMINI_API_KEY = "AIzaSyCO6g21wMI3cGqFXQU0Wgt4nlSjbFpmIt4"; // i have used my gemeni api key for testing, you can use yours
     /**
    * Function to open a simple message modal with a given text.
    * This replaces browser's alert() for better UI control.
@@ -24996,13 +24992,23 @@ const App = ()=>{
         setMessage('');
     };
     /**
+   * NEW FUNCTION: Clears the displayed quotes and the topic input.
+   */ const clearQuotes = ()=>{
+        setQuotes([]); // Clear the quotes array
+        setTopic(''); // Clear the topic input
+    };
+    /**
    * Function to generate 3 quotes using the Gemini API based on the entered topic.
    * This function is now asynchronous as it makes an API call.
    */ const generateQuotes = async ()=>{
-        // Basic validation: if topic is empty, show a message
+        // Enhanced Input Validation: Check for empty or too short topic
         if (topic.trim() === '') {
             showMessage("Please enter a topic to generate quotes.");
-            return; // Stop the function execution
+            return;
+        }
+        if (topic.trim().length < 3) {
+            showMessage("Please enter a topic with at least 3 characters.");
+            return;
         }
         setLoading(true); // Set loading state to true when generation starts
         setQuotes([]); // Clear any previously displayed quotes
@@ -25022,8 +25028,8 @@ const App = ()=>{
             const payload = {
                 contents: chatHistory
             };
-            const apiKey = "AIzaSyCO6g21wMI3cGqFXQU0Wgt4nlSjbFpmIt4"; // Canvas will automatically provide the API key at runtime
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            // Use the API key from the constant
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
             // Make the API call to Gemini
             const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -25032,6 +25038,13 @@ const App = ()=>{
                 },
                 body: JSON.stringify(payload)
             });
+            // Check if the response was successful (status code 2xx)
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Gemini API error response:", errorData);
+                showMessage(`API Error: ${errorData.error?.message || 'Something went wrong with the API request.'}`);
+                return; // Exit if response is not OK
+            }
             // Parse the JSON response from the API
             const result = await response.json();
             // Check if the response contains valid candidates and content
@@ -25039,7 +25052,8 @@ const App = ()=>{
                 const generatedText = result.candidates[0].content.parts[0].text;
                 // Split the generated text by newline to get individual quotes
                 const newQuotes = generatedText.split('\n').filter((q)=>q.trim() !== '');
-                setQuotes(newQuotes); // Update the quotes state with generated quotes
+                if (newQuotes.length === 0) showMessage("The AI generated an empty response for this topic. Please try a different topic.");
+                else setQuotes(newQuotes); // Update the quotes state with generated quotes
             } else {
                 // Handle cases where the API response structure is unexpected
                 showMessage("Failed to generate quotes. The AI response was unexpected.");
@@ -25047,7 +25061,7 @@ const App = ()=>{
             }
         } catch (error) {
             // Catch any errors during the fetch operation (e.g., network issues)
-            showMessage("An error occurred while generating quotes. Please check your connection or try a different topic.");
+            showMessage("An error occurred while generating quotes. Please check your connection or try again.");
             console.error("Error calling Gemini API:", error);
         } finally{
             setLoading(false); // Always set loading to false after the operation completes or fails
@@ -25070,19 +25084,20 @@ const App = ()=>{
                     children: "Quote Generator"
                 }, void 0, false, {
                     fileName: "src/App.jsx",
-                    lineNumber: 124,
+                    lineNumber: 144,
                     columnNumber: 9
                 }, undefined),
                 /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
                     className: "space-y-4",
                     children: [
+                        " ",
                         /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("label", {
                             htmlFor: "topic-input",
                             className: "block text-sm font-medium text-gray-300",
                             children: "Enter Topic (e.g., Motivation, Success, Life):"
                         }, void 0, false, {
                             fileName: "src/App.jsx",
-                            lineNumber: 131,
+                            lineNumber: 151,
                             columnNumber: 11
                         }, undefined),
                         /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("input", {
@@ -25095,26 +25110,46 @@ const App = ()=>{
                             disabled: loading
                         }, void 0, false, {
                             fileName: "src/App.jsx",
-                            lineNumber: 149,
+                            lineNumber: 155,
                             columnNumber: 11
                         }, undefined),
-                        /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("button", {
-                            onClick: generateQuotes,
-                            className: "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-gray-900 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 w-full shadow-md",
-                            disabled: loading,
+                        /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
+                            className: "flex flex-col sm:flex-row gap-3",
                             children: [
-                                loading ? 'Generating...' : "Generate Quotes \u2728",
-                                " "
+                                " ",
+                                /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("button", {
+                                    onClick: generateQuotes,
+                                    className: "flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-gray-900 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 shadow-md",
+                                    disabled: loading,
+                                    children: [
+                                        loading ? 'Generating...' : "Generate Quotes \u2728",
+                                        " "
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "src/App.jsx",
+                                    lineNumber: 166,
+                                    columnNumber: 13
+                                }, undefined),
+                                /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("button", {
+                                    onClick: clearQuotes,
+                                    className: "flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-gray-900 bg-gray-600 text-white hover:bg-gray-700 h-10 px-4 py-2 shadow-md",
+                                    disabled: loading,
+                                    children: "Clear Quotes \uD83D\uDDD1\uFE0F"
+                                }, void 0, false, {
+                                    fileName: "src/App.jsx",
+                                    lineNumber: 174,
+                                    columnNumber: 13
+                                }, undefined)
                             ]
                         }, void 0, true, {
                             fileName: "src/App.jsx",
-                            lineNumber: 171,
+                            lineNumber: 165,
                             columnNumber: 11
                         }, undefined)
                     ]
                 }, void 0, true, {
                     fileName: "src/App.jsx",
-                    lineNumber: 129,
+                    lineNumber: 149,
                     columnNumber: 9
                 }, undefined),
                 loading && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -25122,7 +25157,7 @@ const App = ()=>{
                     children: "Generating quotes, please wait..."
                 }, void 0, false, {
                     fileName: "src/App.jsx",
-                    lineNumber: 183,
+                    lineNumber: 187,
                     columnNumber: 11
                 }, undefined),
                 !loading && quotes.length > 0 && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -25133,7 +25168,7 @@ const App = ()=>{
                             children: "Your Generated Quotes:"
                         }, void 0, false, {
                             fileName: "src/App.jsx",
-                            lineNumber: 190,
+                            lineNumber: 194,
                             columnNumber: 13
                         }, undefined),
                         quotes.map((quote, index)=>/*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -25153,18 +25188,18 @@ const App = ()=>{
                                     ]
                                 }, void 0, true, {
                                     fileName: "src/App.jsx",
-                                    lineNumber: 203,
+                                    lineNumber: 207,
                                     columnNumber: 17
                                 }, undefined)
                             }, index, false, {
                                 fileName: "src/App.jsx",
-                                lineNumber: 193,
+                                lineNumber: 197,
                                 columnNumber: 15
                             }, undefined))
                     ]
                 }, void 0, true, {
                     fileName: "src/App.jsx",
-                    lineNumber: 189,
+                    lineNumber: 193,
                     columnNumber: 11
                 }, undefined),
                 isMessageModalOpen && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -25177,7 +25212,7 @@ const App = ()=>{
                                 children: "Notification"
                             }, void 0, false, {
                                 fileName: "src/App.jsx",
-                                lineNumber: 214,
+                                lineNumber: 218,
                                 columnNumber: 15
                             }, undefined),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
@@ -25185,7 +25220,7 @@ const App = ()=>{
                                 children: message
                             }, void 0, false, {
                                 fileName: "src/App.jsx",
-                                lineNumber: 215,
+                                lineNumber: 219,
                                 columnNumber: 15
                             }, undefined),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("button", {
@@ -25194,29 +25229,29 @@ const App = ()=>{
                                 children: "OK"
                             }, void 0, false, {
                                 fileName: "src/App.jsx",
-                                lineNumber: 216,
+                                lineNumber: 220,
                                 columnNumber: 15
                             }, undefined)
                         ]
                     }, void 0, true, {
                         fileName: "src/App.jsx",
-                        lineNumber: 213,
+                        lineNumber: 217,
                         columnNumber: 13
                     }, undefined)
                 }, void 0, false, {
                     fileName: "src/App.jsx",
-                    lineNumber: 212,
+                    lineNumber: 216,
                     columnNumber: 11
                 }, undefined)
             ]
         }, void 0, true, {
             fileName: "src/App.jsx",
-            lineNumber: 117,
+            lineNumber: 137,
             columnNumber: 7
         }, undefined)
     }, void 0, false, {
         fileName: "src/App.jsx",
-        lineNumber: 107,
+        lineNumber: 127,
         columnNumber: 5
     }, undefined));
 };
