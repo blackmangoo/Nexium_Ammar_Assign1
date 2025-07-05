@@ -1,3 +1,4 @@
+
 # 🚀 Quote Generator Web App
 
 A dynamic, responsive web app that generates motivational quotes based on a user-provided topic. Powered by **Google's Gemini API**, it delivers intelligent, contextual quotes — offering a more engaging experience than static lists.
@@ -51,47 +52,43 @@ This project was developed as part of an internship, focusing on **modern web de
 ```bash
 git clone https://github.com/blackmangoo/Nexium_Ammar_Assign1.git
 cd Nexium_Ammar_Assign1
-2. Install Dependencies
+```
+### 2. Install Dependencies
 Install pnpm globally (if you haven’t already):
-
-bash
-Copy
-Edit
+```bash
 npm install -g pnpm
+```
 Then install project dependencies:
 
-bash
-Copy
-Edit
+```bash
 pnpm install
-3. Set Up Gemini API Key
+```
+### 3. Set Up Gemini API Key
 Get your key from Google AI Studio
 
 Create a .env file in the root directory and add:
 
-env
-Copy
-Edit
+```env
 PARCEL_GEMINI_API_KEY=YOUR_ACTUAL_GEMINI_API_KEY_HERE
+```
 ⚠️ .env is listed in .gitignore to protect your key.
 
-4. Start the Development Server
-bash
-Copy
-Edit
+### 4. Start the Development Server
+```bash
 pnpm start
+```
 The app will run at: http://localhost:1234
 
-🌐 Deployment
+# # 🌐 Deployment
 This project is deployable on platforms like Vercel.
 
-🔗 Live Demo: Quote Generator Live App
-(Replace # with your actual deployment URL)
+#### 🔗 Live Demo: Quote Generator Live App
 
-📁 Project Structure
-csharp
-Copy
-Edit
+https://nexium-ammar-assign1-git-main-ammar-akbars-projects.vercel.app/
+
+
+## 📁 Project Structure
+```csharp
 Nexium_Ammar_Assign1/
 ├── public/
 │   └── index.html         # HTML entry
@@ -103,3 +100,4 @@ Nexium_Ammar_Assign1/
 ├── package.json           # Metadata & scripts
 ├── pnpm-lock.yaml         # Lock file
 └── README.md              # You're reading it!
+```
