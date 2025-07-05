@@ -5,7 +5,7 @@ Install Dependencies:This project uses pnpm as its package manager. If you don't
 Then, install the project dependencies:pnpm install
 Set Up Gemini API Key:Obtain a Gemini API key from Google AI Studio.In the root of your project directory, create a new file named .env.Add your API key to this file in the following format (replace YOUR_ACTUAL_GEMINI_API_KEY_HERE with your key):PARCEL_GEMINI_API_KEY=YOUR_ACTUAL_GEMINI_API_KEY_HERE
 Important: The .env file is included in .gitignore to prevent your API key from being committed to public repositories.Start the Development Server:pnpm start
-The application will typically open in your browser at http://localhost:1234.🌐 DeploymentThis application is designed for easy deployment to platforms like Vercel.Live Demo:(This link will be added after successful deployment to Vercel on Day 7)📄 Project StructureNexium_Ammar_Assign1/
+The application will typically open in your browser at http://localhost:1234.🌐 DeploymentThis application is designed for easy deployment to platforms like Vercel.Live Demo:(https://nexium-ammar-assign1-chi.vercel.app/)📄 Project StructureNexium_Ammar_Assign1/
 ├── public/
 │   └── index.html         # Main HTML entry point
 ├── src/
