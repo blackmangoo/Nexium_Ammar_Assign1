@@ -24976,7 +24976,7 @@ const App = ()=>{
     // State to indicate if quotes are currently being generated (for loading indicator)
     const [loading, setLoading] = (0, _react.useState)(false);
     //API Key for local development.
-    const GEMINI_API_KEY = ""; // i have used my gemeni api key for testing, you can use yours
+    const GEMINI_API_KEY = undefined; // i have used my gemeni api key for testing, you can use yours
     /**
    * Function to open a simple message modal with a given text.
    * This replaces browser's alert() for better UI control.

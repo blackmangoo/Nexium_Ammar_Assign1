@@ -14,7 +14,7 @@ const App = () => {
   const [loading, setLoading] = useState(false);
 
   //API Key for local development.
-  const GEMINI_API_KEY = ""; // i have used my gemeni api key for testing, you can use yours
+  const GEMINI_API_KEY = process.env.PARCEL_GEMINI_API_KEY; // i have used my gemeni api key for testing, you can use yours
 
   /**
    * Function to open a simple message modal with a given text.
