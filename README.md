@@ -52,7 +52,7 @@ This project was developed as part of an internship, focusing on **modern web de
 git clone https://github.com/blackmangoo/Nexium_Ammar_Assign1.git
 cd Nexium_Ammar_Assign1
 2. Install Dependencies
-If you don’t have pnpm:
+Install pnpm globally (if you haven’t already):
 
 bash
 Copy
@@ -67,7 +67,7 @@ pnpm install
 3. Set Up Gemini API Key
 Get your key from Google AI Studio
 
-Create a .env file in the root directory with this content:
+Create a .env file in the root directory and add:
 
 env
 Copy
@@ -80,7 +80,7 @@ bash
 Copy
 Edit
 pnpm start
-App will run at: http://localhost:1234
+The app will run at: http://localhost:1234
 
 🌐 Deployment
 This project is deployable on platforms like Vercel.
